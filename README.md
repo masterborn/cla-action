@@ -80,6 +80,7 @@ To make the whole process more fraud resistant we grant the option to additional
 | Name                  | Requirement | Description |
 | --------------------- | ----------- | ----------- |
 | `GITHUB_TOKEN`        | _required_ | Must be in the form of `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`  ,  CLA Action uses this in-built GitHub token to make the API calls for interacting with GitHub. It is built into Github Actions and does not need to be manually specified in your secrets store. [More Info](https://help.github.com/en/actions/configuring-and-managing-workflows/authenticating-with-the-github_token)|
+| `PERSISTANCE_GITHUB_TOKEN` | _optional_ | Must be included when `persistance-repository` is present - it should be PAT with repo access - suggested way is to create github machine-user with specific repository access only |
 
 ### Inputs Description :
 
@@ -91,6 +92,7 @@ To make the whole process more fraud resistant we grant the option to additional
 | `empty-commit-flag`   | _optional_ |  provide the boolean `true` or `false` so that GitHub Actions will add empty commit whenever user signs the CLA. Default is `true`  |
 | `whitelist`   | _optional_ | You can specify users and bots to be [whitelisted](https://github.com/cla-assistant/github-action#5-whitelisting-users-and-bots). For example `user1,user2,bot*`  |
 | `blockchain-storage-flag`     | _optional_ |  provide the boolean `true` or `false` to optionally store the Contributor's signature data in the Ethereum blockchain. Default is `false` |
+| `persistance-repository`    | _optional_ | provide name of repository in organization scope to which contributors should be persisted into |
 
 This action won't work for Pull Request coming from the forks as the [GitHub Action Token](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token) does not have write access for the forks, However, the GitHub team assured in one of the [discussion](https://github.community/t5/GitHub-Actions/Github-Workflow-not-running-from-pull-request-from-forked/m-p/32979#M1325) that they will ship this feature to enable read/write access for the PRs coming from the forks. 
 

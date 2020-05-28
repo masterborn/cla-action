@@ -1,11 +1,15 @@
 import getCommitters from "./graphql"
-import octokit from "./octokit"
+import { octokit, persistanceOctokit } from "./octokit"
 import * as core from "@actions/core"
 import { context } from "@actions/github"
 import prComment from "./pullRequestComment"
 import { CommitterMap, CommittersDetails, ReactedCommitterMap } from "./interfaces"
 import { checkWhitelist } from "./checkWhiteList"
 const _ = require('lodash')
+
+const getPersistanceRepository = (): string => {
+  return core.getInput('persistance-repository') || context.repo.repo
+}
 
 function prepareCommiterMap(committers: CommittersDetails[], clas): CommitterMap {
 
@@ -26,9 +30,9 @@ function prepareCommiterMap(committers: CommittersDetails[], clas): CommitterMap
 }
 //TODO: refactor the commit message when a project admin does recheck PR
 async function updateFile(pathToClaSignatures, sha, contentBinary, branch, pullRequestNo) {
-  await octokit.repos.createOrUpdateFile({
+  await persistanceOctokit.repos.createOrUpdateFile({
     owner: context.repo.owner,
-    repo: context.repo.repo,
+    repo: getPersistanceRepository(),
     path: pathToClaSignatures,
     sha: sha,
     message: `@${context.actor} has signed the CLA from Pull Request ${pullRequestNo}`,
@@ -39,9 +43,9 @@ async function updateFile(pathToClaSignatures, sha, contentBinary, branch, pullR
 
 function createFile(pathToClaSignatures, contentBinary, branch): Promise<object> {
   /* TODO: add dynamic message content  */
-  return octokit.repos.createOrUpdateFile({
+  return persistanceOctokit.repos.createOrUpdateFile({
     owner: context.repo.owner,
-    repo: context.repo.repo,
+    repo: getPersistanceRepository(),
     path: pathToClaSignatures,
     message:
       "Creating file for storing CLA Signatures",
@@ -68,9 +72,9 @@ export async function getclas(pullRequestNo: number) {
   //TODO code in more readable and efficient way
   committers = checkWhitelist(committers)
   try {
-    result = await octokit.repos.getContents({
+    result = await persistanceOctokit.repos.getContents({
       owner: context.repo.owner,
-      repo: context.repo.repo,
+      repo: getPersistanceRepository(),
       path: pathToClaSignatures,
       ref: branch
     })

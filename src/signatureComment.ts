@@ -29,6 +29,7 @@ export default async function signatureWithPRComment(commentId, committerMap: Co
             body: prComment.body.toLowerCase(),
             created_at: prComment.created_at,
             repoId: repoId,
+            repoName: context.repo.repo,
             pullRequestNo: pullRequestNo
         })
     })
