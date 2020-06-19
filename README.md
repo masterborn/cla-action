@@ -1,4 +1,4 @@
-![build](https://github.com/cla-assistant/github-action/workflows/build/badge.svg)
+![build](https://github.com/ockam-network/cla-action/workflows/build/badge.svg)
 # Handling CLAs with GitHub Action (Alpha)
 
 Streamline your workflow and let this GitHub Action(a lite version of [CLA Assistant](https://github.com/cla-assistant/cla-assistant)) handle the legal side of contributions to a repository for you. CLA assistant enables contributors to sign CLAs from within a pull request. With this GitHub Action we get rid of the need for a centrally managed database by **storing the contributor's signature data** in a decentralized way - **in the repository's file system**
@@ -35,7 +35,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with: 
           path-to-signatures: 'signatures/version1/cla.json'
-          path-To-cladocument: 'https://github.com/ibakshay/test-action-workflow/blob/master/cla.md'
+          path-to-cla-document: 'https://github.com/ibakshay/test-action-workflow/blob/master/cla.md'
           # branch should not be protected
           branch: 'master'
           whitelist: user1,user2,bot*
@@ -85,7 +85,7 @@ To make the whole process more fraud resistant we grant the option to additional
 
 | Name                  | Requirement | Description |
 | --------------------- | ----------- | ----------- |
-| `path-To-cladocument`     | _required_ |  provide full URL `https://<clafile>` to the Contributor License Agreement (CLA) to which the Contributor can read  before signing the CLA. It can be a file inside the repository or it can be a gist |
+| `path-to-cla-document`     | _required_ |  provide full URL `https://<clafile>` to the Contributor License Agreement (CLA) to which the Contributor can read  before signing the CLA. It can be a file inside the repository or it can be a gist |
 | `path-to-signatures`       | _optional_ |  Path to the JSON file where  all the signatures of the contributors will be stored inside the repository. Default path is  "./signatures/cla.json". |
 | `branch`   | _optional_ |  Branch in which all the signatures of the contributors will be stored and Default branch is `master`  |
 | `empty-commit-flag`   | _optional_ |  provide the boolean `true` or `false` so that GitHub Actions will add empty commit whenever user signs the CLA. Default is `true`  |
