@@ -3,6 +3,7 @@ import * as core from '@actions/core';
 import { context } from '@actions/github'
 import { CommittersDetails } from './interfaces'
 
+const extractUserFromCommit = (commit: any) => commit.author.user || commit.committer.user || commit.author || commit.committer
 
 const queryPullRequests = async (): Promise<any> => {
     const response = await octokit.graphql(`
@@ -85,55 +86,66 @@ const queryIssues = async (): Promise<any> => {
 }
 
 
+const isPullRequest = (): boolean => context.eventName === 'pull_request' || !!context.payload?.issue?.pull_request!
+const isIssue = (): boolean => context.eventName === 'issue_comment'
+
+const createCommitter = (committer: any): CommittersDetails => {
+    return {
+        name: committer.login || committer.name,
+        id: committer.databaseId || '',
+        pullRequestNo: context.issue.number
+    }
+}
+
+const isCommitterOnTheList = (committers: CommittersDetails[], committer: CommittersDetails) => {
+    return committers.length === 0 || committers.map((c) => {
+        return c.name
+    }).indexOf(committer.name) < 0
+}
+
+const handlePullRequests = async (): Promise<CommittersDetails[]> => {
+    const committers: CommittersDetails[] = []
+    const response = await queryPullRequests()
+    response.repository.pullRequest.commits.edges
+        .forEach((edge: any) => {
+            const committer: CommittersDetails = createCommitter(
+                extractUserFromCommit(edge.node.commit)
+            );
+            if (isCommitterOnTheList(committers, committer)) {
+                committers.push(committer)
+            }
+        })
+    return committers;
+}
+
+const handleIssues = async (): Promise<CommittersDetails[]> => {
+    const committers: CommittersDetails[] = []
+    const response = await queryIssues()
+    response.repository.issue.participants.edges
+        .forEach((edge: any) => {
+            const committer: CommittersDetails = createCommitter(edge.node);
+            if (isCommitterOnTheList(committers, committer)) {
+                committers.push(committer)
+            }
+        })
+    return committers;
+}
+
 export default async function getCommitters() {
     try {
         let committers: CommittersDetails[] = []
-        let filteredCommitters: CommittersDetails[] = []
-        let response: any
-        switch (context.eventName) {
-            case 'pull_request':
-                response = await queryPullRequests()
-                response.repository.pullRequest.commits.edges.forEach(edge => {
-                    let committer = extractUserFromCommit(edge.node.commit)
-                    let user = {
-                        name: committer.login || committer.name,
-                        id: committer.databaseId || '',
-                        pullRequestNo: context.issue.number
-                    }
-                    if (committers.length === 0 || committers.map((c) => {
-                        return c.name
-                    }).indexOf(user.name) < 0) {
-                        committers.push(user)
-                    }
-                })
+        switch (true) {
+            case (isPullRequest()):
+                committers = await handlePullRequests();
                 break
-            case 'issue_comment':
-                response = await queryIssues()
-                response.repository.issue.participants.edges.forEach(edge => {
-                    const committer = edge.node
-                    let user = {
-                        name: committer.login || committer.name,
-                        id: committer.databaseId || '',
-                        pullRequestNo: context.issue.number
-                    }
-                    if (committers.length === 0 || committers.map((c) => {
-                        return c.name
-                    }).indexOf(user.name) < 0) {
-                        committers.push(user)
-                    }
-                })
+            case (isIssue()):
+                committers = await handleIssues();
                 break
             default:
                 throw new Error(`Event ${context.eventName} not supported`)
         }
-        filteredCommitters = committers.filter((committer) => {
-            return committer.id !== 41898282
-        })
-        return filteredCommitters
-
+        return committers
     } catch (e) {
         core.setFailed('graphql call to get the committers details failed:' + e)
     }
-
 }
-const extractUserFromCommit = (commit) => commit.author.user || commit.committer.user || commit.author || commit.committer
