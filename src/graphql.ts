@@ -90,6 +90,7 @@ export default async function getCommitters() {
         let committers: CommittersDetails[] = []
         let filteredCommitters: CommittersDetails[] = []
         let response: any
+        console.log(JSON.stringify(context))
         switch (context.eventName) {
             case 'pull_request':
                 response = await queryPullRequests()
