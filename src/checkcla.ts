@@ -78,6 +78,13 @@ export async function getclas(pullRequestNo: number) {
       path: pathToClaSignatures,
       ref: branch
     })
+    await octokit.repos.createStatus({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      sha: '308fa32fe21f8095cbaf5102d9c7170f47853cdb',
+      state: 'success',
+      context: 'CLA Assistant / CLAssistant (pull_request)'
+    });
     sha = result.data.sha
   } catch (error) {
     if (error.status === 404) {
