@@ -131,7 +131,7 @@ const handleIssues = async (): Promise<CommittersDetails[]> => {
     return committers;
 }
 
-export default async function getCommitters(): Promise<CommittersDetails[]> {
+export default async function getCommitters() {
     try {
         let committers: CommittersDetails[] = []
         switch (true) {

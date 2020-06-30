@@ -22,6 +22,10 @@ inputs:
     default: true
   whitelist:
     description: "whitelisted users don't have to sign the CLA document"
+  path-to-cla-document:
+    description: "Give a URL pointing at CLA document"
+  persistance-repository:
+    description: "Give name of the repository in the same organization to store signatures document in"
 runs:
   using: "node12"
   main: "lib/main.js"
