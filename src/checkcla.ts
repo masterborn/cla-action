@@ -72,7 +72,7 @@ export async function getCLAs(pullRequestNo: number) {
   //TODO code in more readable and efficient way
   committers = checkWhitelist(committers)
   try {
-    result = await readOctokit.repos.getContent({
+    result = await readOctokit.repos.getContents({
       owner: context.repo.owner,
       repo: getPersistanceRepository(),
       path: pathToClaSignatures,

@@ -7,8 +7,7 @@ const octokit = getOctokit(process.env.GITHUB_TOKEN as string)
 
 const readOctokit = new Octokit();
 
-const persistanceRepository = core.getInput('persistance-repository')
-const persistanceOctokit = isForkedPRRun() ? readOctokit : getOctokit(process.env.PERSISTANCE_GITHUB_TOKEN as string)
+const persistanceOctokit = isForkedPRRun() ? octokit : getOctokit(process.env.PERSISTANCE_GITHUB_TOKEN as string)
 
 
 export default octokit 
