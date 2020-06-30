@@ -6,7 +6,7 @@ import { addEmptyCommit } from "./addEmptyCommit"
 import blockChainWebhook from "./blockChainWebhook"
 
 
-export default async function signatureWithPRComment(commentId, committerMap: CommitterMap, committers, pullRequestNo: number) {
+export default async function signatureWithPRComment(committerMap: CommitterMap, committers: CommittersDetails[], pullRequestNo: number) {
     const blockchainFlag = core.getInput('blockchain-storage-flag')
     const emptyCommitFlag = core.getInput('empty-commit-flag')
 

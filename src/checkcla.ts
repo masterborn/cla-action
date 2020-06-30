@@ -1,5 +1,5 @@
 import getCommitters from "./graphql"
-import { octokit, persistanceOctokit } from "./octokit"
+import { readOctokit, persistanceOctokit } from "./octokit"
 import * as core from "@actions/core"
 import { context } from "@actions/github"
 import prComment from "./pullRequestComment"
@@ -54,7 +54,7 @@ function createFile(pathToClaSignatures, contentBinary, branch): Promise<object>
   })
 }
 
-export async function getclas(pullRequestNo: number) {
+export async function getCLAs(pullRequestNo: number) {
   let committerMap = {} as CommitterMap
 
   let signed: boolean = false
@@ -72,19 +72,12 @@ export async function getclas(pullRequestNo: number) {
   //TODO code in more readable and efficient way
   committers = checkWhitelist(committers)
   try {
-    result = await persistanceOctokit.repos.getContents({
+    result = await readOctokit.repos.getContents({
       owner: context.repo.owner,
       repo: getPersistanceRepository(),
       path: pathToClaSignatures,
       ref: branch
     })
-    await octokit.repos.createStatus({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      sha: '308fa32fe21f8095cbaf5102d9c7170f47853cdb',
-      state: 'success',
-      context: 'CLA Assistant / CLAssistant (pull_request)'
-    });
     sha = result.data.sha
   } catch (error) {
     if (error.status === 404) {
