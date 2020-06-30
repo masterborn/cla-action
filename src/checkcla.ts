@@ -1,5 +1,5 @@
 import getCommitters from "./graphql"
-import { readOctokit, persistanceOctokit } from "./octokit"
+import { readOctokit, persistanceOctokit } from "./inits/octokit"
 import * as core from "@actions/core"
 import { context } from "@actions/github"
 import prComment from "./pullRequestComment"
@@ -30,7 +30,7 @@ function prepareCommiterMap(committers: CommittersDetails[], clas): CommitterMap
 }
 //TODO: refactor the commit message when a project admin does recheck PR
 async function updateFile(pathToClaSignatures, sha, contentBinary, branch, pullRequestNo) {
-  await persistanceOctokit.repos.createOrUpdateFile({
+  await persistanceOctokit.repos.createOrUpdateFileContents({
     owner: context.repo.owner,
     repo: getPersistanceRepository(),
     path: pathToClaSignatures,
@@ -43,7 +43,7 @@ async function updateFile(pathToClaSignatures, sha, contentBinary, branch, pullR
 
 function createFile(pathToClaSignatures, contentBinary, branch): Promise<object> {
   /* TODO: add dynamic message content  */
-  return persistanceOctokit.repos.createOrUpdateFile({
+  return persistanceOctokit.repos.createOrUpdateFileContents({
     owner: context.repo.owner,
     repo: getPersistanceRepository(),
     path: pathToClaSignatures,
@@ -72,7 +72,7 @@ export async function getCLAs(pullRequestNo: number) {
   //TODO code in more readable and efficient way
   committers = checkWhitelist(committers)
   try {
-    result = await readOctokit.repos.getContents({
+    result = await readOctokit.repos.getContent({
       owner: context.repo.owner,
       repo: getPersistanceRepository(),
       path: pathToClaSignatures,
@@ -140,9 +140,9 @@ export async function getCLAs(pullRequestNo: number) {
     if (committerMap.notSigned === undefined || committerMap.notSigned.length === 0) {
       core.info("All committers have signed the CLA")
       return
-    } else {
-      core.setFailed(`committers of Pull Request number ${context.issue.number} have to sign the CLA`)
     }
+
+    core.setFailed(`committers of Pull Request number ${context.issue.number} have to sign the CLA`)
   } catch (err) {
     core.setFailed(`Could not update the JSON file: ${err.message}`)
     throw new Error("error while updating the JSON file" + err)

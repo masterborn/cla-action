@@ -1,4 +1,4 @@
-import octokit from './octokit'
+import octokit from './inits/octokit'
 import { context } from '@actions/github'
 import { CommitterMap, CommittersDetails, CommentedCommitterMap } from './interfaces'
 import * as core from '@actions/core'
@@ -48,8 +48,8 @@ export default async function signatureWithPRComment(committerMap: CommitterMap,
     if (context.eventName === "issue_comment") {
         //Do empty commit only when the contributor signs the CLA with the PR comment and then check if the comment is from the newsigned contributor
         if (emptyCommitFlag == 'true') {
-            core.debug(JSON.stringify(context.payload.comment.user.id))
-            if (commentedCommitterMap.newSigned.some(contributor => contributor.id === context.payload.comment.user.id)) {
+            core.debug(JSON.stringify(context.payload?.comment?.user?.id))
+            if (commentedCommitterMap.newSigned.some(contributor => contributor.id === context.payload?.comment?.user?.id)) {
                 core.debug("Adding empty commit for the signee")
                 await addEmptyCommit()
             }
