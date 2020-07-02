@@ -7,7 +7,7 @@ core.debug(`Is forked run: ${isForkedPRRun()}`)
 
 const octokit = getOctokit(process.env.GITHUB_TOKEN as string)
 
-const readOctokit = new Octokit();
+const readOctokit = new Octokit({ auth: '' });
 
 const persistanceOctokit = isForkedPRRun() ? octokit : getOctokit(process.env.PERSISTANCE_GITHUB_TOKEN as string)
 
