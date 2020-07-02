@@ -19,7 +19,7 @@ export default async function rerunFailedWorkflow() {
       branch: pullRequest.head.ref
     })
 
-    core.debug('Workflow :' + JSON.stringify(workflows))
+    core.debug('Workflow :' + JSON.stringify(workflows, null, 2))
     if (workflows.workflow_runs.length !== 0 && workflows.workflow_runs[0].conclusion !== 'success') {
       await persistanceOctokit.actions.reRunWorkflow({
         owner: context.repo.owner,
