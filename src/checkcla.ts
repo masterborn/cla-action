@@ -81,6 +81,7 @@ export async function getCLAs(pullRequestNo: number) {
     })
     sha = result.data.sha
   } catch (error) {
+    core.debug(`Error message: ${error}`)
     if (error.status === 404) {
       committerMap.notSigned = committers
       committerMap.signed = []
