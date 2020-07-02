@@ -118,7 +118,7 @@ export async function getCLAs(pullRequestNo: number) {
     signed = true
   }
 
-  rerun
+  await rerunFailedWorkflow()
 
   try {
     const reactedCommitters: ReactedCommitterMap = (await prComment(signed, committerMap, committers, pullRequestNo)) as ReactedCommitterMap
