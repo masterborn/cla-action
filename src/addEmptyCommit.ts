@@ -2,7 +2,7 @@ import octokit from './inits/octokit'
 import * as core from '@actions/core'
 import { context } from '@actions/github'
 
-import isForkedPRRun from './common/isForkedPRRun'
+import { isForkedPRRun } from './common'
 
 export async function addEmptyCommit() {
     if (isForkedPRRun()) return;

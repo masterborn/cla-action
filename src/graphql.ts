@@ -2,6 +2,7 @@ import octokit from './inits/octokit'
 import * as core from '@actions/core';
 import { context } from '@actions/github'
 import { CommittersDetails } from './interfaces'
+import { isIssue, isPullRequest } from './common'
 
 const extractUserFromCommit = (commit: any) => commit.author.user || commit.committer.user || commit.author || commit.committer
 
@@ -84,10 +85,6 @@ const queryIssues = async (): Promise<any> => {
     });
     return response;
 }
-
-
-const isPullRequest = (): boolean => context.eventName === 'pull_request' || !!context.payload?.issue?.pull_request!
-const isIssue = (): boolean => context.eventName === 'issue_comment'
 
 const createCommitter = (committer: any): CommittersDetails => {
     return {
