@@ -5,6 +5,7 @@ import { context } from "@actions/github"
 import prComment from "./pullRequestComment"
 import { CommitterMap, CommittersDetails, ReactedCommitterMap } from "./interfaces"
 import { checkWhitelist } from "./checkWhiteList"
+import rerunFailedWorkflow from './rerunFailedWorkflow'
 const _ = require('lodash')
 
 const getPersistanceRepository = (): string => {
@@ -116,6 +117,9 @@ export async function getCLAs(pullRequestNo: number) {
     core.debug("null check")
     signed = true
   }
+
+  rerun
+
   try {
     const reactedCommitters: ReactedCommitterMap = (await prComment(signed, committerMap, committers, pullRequestNo)) as ReactedCommitterMap
     if (signed) {
