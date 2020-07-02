@@ -3,6 +3,8 @@ import { Octokit } from '@octokit/rest'
 import * as core from '@actions/core'
 import isForkedPRRun from '../common/isForkedPRRun'
 
+core.debug(`Is forked run: ${isForkedPRRun()}`)
+
 const octokit = getOctokit(process.env.GITHUB_TOKEN as string)
 
 const readOctokit = new Octokit();
