@@ -4,7 +4,7 @@ import { persistanceOctokit } from './inits/octokit'
 import { isForkedPRRun, isPullRequest }  from './common'
 
 export default async function rerunFailedWorkflow() {
-  if (!isForkedPRRun() && !isPullRequest()) return;
+  if (isForkedPRRun() || !isPullRequest()) return;
 
   try {
     const { data: pullRequest } = await persistanceOctokit.pulls.get({
