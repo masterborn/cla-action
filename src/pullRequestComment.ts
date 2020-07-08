@@ -1,4 +1,4 @@
-import octokit from "./octokit";
+import octokit from "./inits/octokit";
 import * as core from "@actions/core";
 import { pathToCLADocument } from "./url";
 import { context } from "@actions/github";
@@ -8,6 +8,7 @@ import {
   ReactedCommitterMap,
   CommittersDetails
 } from "./interfaces";
+import isForkedPRRun from './common/isForkedPRRun'
 
 async function getComment() {
   try {
@@ -76,6 +77,7 @@ function prepareAllSignedCommitters(committerMap: CommitterMap, signedInPrCommit
 }
 
 export default async function prComment(signed: boolean, committerMap: CommitterMap, committers: CommittersDetails[], pullRequestNo: number) {
+  if (isForkedPRRun()) return;
   try {
     const prComment = await getComment();
     if (!prComment) {
@@ -95,7 +97,7 @@ export default async function prComment(signed: boolean, committerMap: Committer
           body: commentContent(signed, committerMap)
         })
       }
-      const reactedCommitters: ReactedCommitterMap = (await signatureWithPRComment(prComment.id, committerMap, committers, pullRequestNo)) as ReactedCommitterMap;
+      const reactedCommitters: ReactedCommitterMap = (await signatureWithPRComment(committerMap, committers, pullRequestNo)) as ReactedCommitterMap;
       if (reactedCommitters) {
         if (reactedCommitters.onlyCommitters) {
           reactedCommitters.allSignedFlag = prepareAllSignedCommitters(committerMap, reactedCommitters.onlyCommitters, committers)

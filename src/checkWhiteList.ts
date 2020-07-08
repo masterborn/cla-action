@@ -3,7 +3,6 @@ import * as core from "@actions/core"
 import { CommittersDetails } from "./interfaces"
 
 function isUserWhitelisted(committer) {
-
     const whitelistedItem: string = core.getInput("whitelist")
     const whitelistPatterns: string[] = whitelistedItem.split(',')
     return whitelistPatterns.filter(function (pattern) {
