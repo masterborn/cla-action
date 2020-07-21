@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { context } from '@actions/github'
 import { persistanceOctokit } from './inits/octokit'
-import { isForkedPRRun, isPullRequest }  from './common'
+import { isForkedPRRun, isPullRequest } from './common'
 import { ActionsListWorkflowRunsForRepoResponseData } from '@octokit/types'
 
 const getLatestCLAWorkflowRun = async (workflowRuns: ActionsListWorkflowRunsForRepoResponseData) => {
@@ -17,7 +17,7 @@ const getLatestCLAWorkflowRun = async (workflowRuns: ActionsListWorkflowRunsForR
 
 export default async function rerunFailedWorkflow() {
   if (isForkedPRRun() || !isPullRequest()) return;
-  
+
   try {
     const { data: pullRequest } = await persistanceOctokit.pulls.get({
       owner: context.repo.owner,
@@ -32,8 +32,8 @@ export default async function rerunFailedWorkflow() {
     })
 
     const workflowRun = await getLatestCLAWorkflowRun(workflowRuns);
-    
-    if (workflowRun && workflowRun.conclusion !== 'success') {
+
+    if (workflowRun && workflowRun.conclusion === 'failure') {
       await persistanceOctokit.actions.reRunWorkflow({
         owner: context.repo.owner,
         repo: context.repo.repo,
