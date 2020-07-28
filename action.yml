@@ -21,6 +21,9 @@ inputs:
     description: "users in the allow list don't have to sign the CLA document"
   path-to-cla-document:
     description: "Fully qualified web link to cla document Example: https://github.com/cla-assistant/github-action/blob/master/SAPCLA.md"
+  persistance-repository:
+    description: "Give name of the repository in the same organization to store signatures document in"
+
 runs:
   using: "node12"
   main: "lib/main.js"

@@ -1,15 +1,63 @@
-import { checkAllowList } from './checkAllowList'
-import getCommitters from './graphql'
-import octokit from './octokit'
-import prComment from './pullRequestComment'
-import { CommitterMap, CommittersDetails, ReactedCommitterMap } from './interfaces'
-import { context } from '@actions/github'
-
+import getCommitters from "./graphql"
+import { readOctokit, persistanceOctokit } from "./inits/octokit"
+import * as core from "@actions/core"
 import * as _ from 'lodash'
-import * as core from '@actions/core'
+import { context } from "@actions/github"
+
+import prComment from "./pullRequestComment"
+import { CommitterMap, CommittersDetails, ReactedCommitterMap } from "./interfaces"
+import { checkAllowList } from "./checkAllowList"
+import rerunFailedWorkflow from './rerunFailedWorkflow'
 
 
-export async function getclas(pullRequestNo: number) {
+const getPersistanceRepository = (): string => {
+  return core.getInput('persistance-repository') || context.repo.repo
+}
+
+function prepareCommiterMap(committers: CommittersDetails[], clas): CommitterMap {
+
+  let committerMap: CommitterMap = {}
+
+  committerMap.notSigned = committers.filter(
+    committer => !clas.signedContributors.some(cla => committer.id === cla.id)
+  )
+  committerMap.signed = committers.filter(committer =>
+    clas.signedContributors.some(cla => committer.id === cla.id)
+  )
+  committers.map(committer => {
+    if (!committer.id) {
+      committerMap.unknown!.push(committer)
+    }
+  })
+  return committerMap
+}
+//TODO: refactor the commit message when a project admin does recheck PR
+async function updateFile(pathToClaSignatures, sha, contentBinary, branch, pullRequestNo) {
+  await persistanceOctokit.repos.createOrUpdateFileContents({
+    owner: context.repo.owner,
+    repo: getPersistanceRepository(),
+    path: pathToClaSignatures,
+    sha: sha,
+    message: `@${context.actor} has signed the CLA from Pull Request ${pullRequestNo}`,
+    content: contentBinary,
+    branch: branch
+  })
+}
+
+function createFile(pathToClaSignatures, contentBinary, branch): Promise<object> {
+  /* TODO: add dynamic message content  */
+  return persistanceOctokit.repos.createOrUpdateFileContents({
+    owner: context.repo.owner,
+    repo: getPersistanceRepository(),
+    path: pathToClaSignatures,
+    message:
+      "Creating file for storing CLA Signatures",
+    content: contentBinary,
+    branch: branch
+  })
+}
+
+export async function getCLAs(pullRequestNo: number) {
   let committerMap = {} as CommitterMap
 
   let signed: boolean = false
@@ -27,14 +75,15 @@ export async function getclas(pullRequestNo: number) {
   //TODO code in more readable and efficient way
   committers = checkAllowList(committers)
   try {
-    result = await octokit.repos.getContents({
+    result = await readOctokit.repos.getContents({
       owner: context.repo.owner,
-      repo: context.repo.repo,
+      repo: getPersistanceRepository(),
       path: pathToClaSignatures,
       ref: branch
     })
     sha = result.data.sha
   } catch (error) {
+    core.debug(`Error message: ${error}`)
     if (error.status === 404) {
       committerMap.notSigned = committers
       committerMap.signed = []
@@ -69,6 +118,9 @@ export async function getclas(pullRequestNo: number) {
   if (committerMap && committerMap.notSigned && committerMap.notSigned.length === 0) {
     signed = true
   }
+
+  await rerunFailedWorkflow()
+
   try {
     const reactedCommitters: ReactedCommitterMap = (await prComment(signed, committerMap, committers, pullRequestNo)) as ReactedCommitterMap
     if (signed) {
@@ -93,54 +145,11 @@ export async function getclas(pullRequestNo: number) {
     if (committerMap.notSigned === undefined || committerMap.notSigned.length === 0) {
       core.info(`All committers have signed the CLA`)
       return
-    } else {
-      core.setFailed(`committers of Pull Request number ${context.issue.number} have to sign the CLA`)
     }
+
+    core.setFailed(`committers of Pull Request number ${context.issue.number} have to sign the CLA`)
   } catch (err) {
     core.setFailed(`Could not update the JSON file: ${err.message}`)
   }
   return clas
-}
-
-function prepareCommiterMap(committers: CommittersDetails[], clas): CommitterMap {
-
-  let committerMap: CommitterMap = {}
-
-  committerMap.notSigned = committers.filter(
-    committer => !clas.signedContributors.some(cla => committer.id === cla.id)
-  )
-  committerMap.signed = committers.filter(committer =>
-    clas.signedContributors.some(cla => committer.id === cla.id)
-  )
-  committers.map(committer => {
-    if (!committer.id) {
-      committerMap.unknown!.push(committer)
-    }
-  })
-  return committerMap
-}
-//TODO: refactor the commit message when a project admin does recheck PR
-async function updateFile(pathToClaSignatures, sha, contentBinary, branch, pullRequestNo) {
-  await octokit.repos.createOrUpdateFile({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    path: pathToClaSignatures,
-    sha: sha,
-    message: `@${context.actor} has signed the CLA from Pull Request ${pullRequestNo}`,
-    content: contentBinary,
-    branch: branch
-  })
-}
-
-function createFile(pathToClaSignatures, contentBinary, branch): Promise<object> {
-  /* TODO: add dynamic message content  */
-  return octokit.repos.createOrUpdateFile({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    path: pathToClaSignatures,
-    message:
-      'Creating file for storing CLA Signatures',
-    content: contentBinary,
-    branch: branch
-  })
 }

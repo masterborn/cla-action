@@ -1,4 +1,4 @@
-import octokit from './octokit'
+import octokit from './inits/octokit'
 import { context } from '@actions/github'
 import { CommitterMap, CommittersDetails, CommentedCommitterMap } from './interfaces'
 import { addEmptyCommit } from './addEmptyCommit'
@@ -6,7 +6,7 @@ import blockChainWebhook from './blockChainWebhook'
 import * as core from '@actions/core'
 
 
-export default async function signatureWithPRComment(commentId, committerMap: CommitterMap, committers, pullRequestNo: number) {
+export default async function signatureWithPRComment(committerMap: CommitterMap, committers: CommittersDetails[], pullRequestNo: number) {
     const blockchainFlag = core.getInput('blockchain-storage-flag')
     const emptyCommitFlag = core.getInput('empty-commit-flag')
 
@@ -29,6 +29,7 @@ export default async function signatureWithPRComment(commentId, committerMap: Co
             body: prComment.body.toLowerCase(),
             created_at: prComment.created_at,
             repoId: repoId,
+            repoName: context.repo.repo,
             pullRequestNo: pullRequestNo
         })
     })
@@ -47,7 +48,9 @@ export default async function signatureWithPRComment(commentId, committerMap: Co
     if (context.eventName === 'issue_comment') {
         //Do empty commit only when the contributor signs the CLA with the PR comment and then check if the comment is from the newsigned contributor
         if (emptyCommitFlag == 'true') {
-            if (commentedCommitterMap.newSigned.some(contributor => contributor.id === context.payload.comment.user.id)) {
+            core.debug(JSON.stringify(context.payload?.comment?.user?.id))
+            if (commentedCommitterMap.newSigned.some(contributor => contributor.id === context.payload?.comment?.user?.id)) {
+                core.debug("Adding empty commit for the signee")
                 await addEmptyCommit()
             }
         }
